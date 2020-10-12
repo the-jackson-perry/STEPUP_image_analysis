@@ -25,7 +25,7 @@ def main():
     the order that they are specified in the input-file.txt file, without
     pausing. If the user is running SIA interactively, they will enter one of
     the three function names, which then runs until completion. Once the
-    funcion has completed, the user will be prompted to run another function if
+    function has completed, the user will be prompted to run another function if
     they wish, and if not SIA will finish running.
 
     Parameters
@@ -58,7 +58,7 @@ def main():
             dirtarget = gui_input_target_dir()
         elif dirtarget.lower() == 'q':
             return None
-    interactive = input('\nWould you like to run SIA interatively? (Y/N): ') \
+    interactive = input('\nWould you like to run SIA interactively? (Y/N): ') \
         .lower().strip(' ')
 
     # Specify keywords SIA should search for in input-file.txt.
@@ -115,7 +115,7 @@ def main():
     if dirdark == '':
         dirdark = dirtarget
 
-    # Ensure that all magntidue values are floats.
+    # Ensure that all magnitude values are floats.
     comp_mags = []
     for mag in comp_mag:
         comp_mags.append(float(mag))
