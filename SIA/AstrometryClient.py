@@ -84,11 +84,22 @@ class AstrometryClient:
         
         self.jobid = None
         return False
-        
+    
+    # Method to wait until submission has left submission queue 
+    # Args:
+    #   None
+    # Returns:
+    #   None
     def wait_for_submission_finished(self):
         while((not self.submission_is_finished()) and (self.subid is not None)):
             time.sleep(5)
     
+    # Method to check if job has finished processing image 
+    # Args:
+    #   None
+    # Returns:
+    #   True if the submission has left the submission queue
+    #   False if otherwise
     def job_is_finished(self):
         if self.jobid is None:
             print("There is no job processing. Please upload an image.")
@@ -100,19 +111,45 @@ class AstrometryClient:
                 return True
         
         return False
-    
+        
+    # Method to wait until job has finished processing 
+    # Args:
+    #   None
+    # Returns:
+    #   None
     def wait_for_job_finished(self):
         while((not self.job_is_finished()) and (self.jobid is not None)):
             time.sleep(5)
-            
+    
+    # Method to download new-image.fits file. If submission and job are not finished, 
+    # the file will not be downloaded 
+    # Args:
+    #   None
+    # Returns:
+    #   True if the file could be downloaded
+    #   False if otherwise
     def download_new_image_fits(self):
-        self.wait_for_submission_finished()
-        self.wait_for_job_finished()
-        
-        r = requests.get('http://nova.astrometry.net/new_fits_file/%s' % self.jobid)
-        with open("new-image.fits", "wb") as f:
-            f.write(r.content)
+        if(not self.submission_is_finished()):
+            print("Submisson %s has not left the submission queue yet." % self.subid)
+            print(" Please wait for submission to complete")
+            return False
+        if(not self.wait_for_job_finished()):
+            print("Job %s has not finished processing yet." % self.subid)
+            print(" Please wait for image processing to complete")
+            return False
             
+        r = requests.get('http://nova.astrometry.net/new_fits_file/%s' % self.jobid)
+        if r.status_code != 200:
+            return False
+            
+        try:
+            with open("new-image.fits", "wb") as f:
+                f.write(r.content)
+        except:
+            print("Could not download new-image.fits")
+            return False
+
+        return True 
 
     # Private Wrapper to login to Astrometry.net using the user API-key
     # Args:
@@ -192,8 +229,3 @@ class AstrometryClient:
             data = data_pre.encode() + file_args[1] + data_post.encode()
 
         return url, headers, data
-
-obj = AstrometryClient("uftirpyxtftfgmxr")
-obj.upload_image("/home/brendan/STEPUP/STEPUP_image_analysis/TIC85031595/2020-02-19/TIC85031595-005L_r.fit")
-obj.download_new_image_fits()
-
